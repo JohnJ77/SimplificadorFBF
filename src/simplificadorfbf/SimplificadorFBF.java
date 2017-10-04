@@ -19,7 +19,7 @@ public class SimplificadorFBF {
     public static void main(String[] args) {
         Stack<String> pilaOperandos = new Stack<String>();
         Stack<String> pilaOperadores = new Stack<String>();
-        String expresion = "((q?r)$((p$t))$(o?n))";
+        String expresion = "¬(q$r)%(u$t)";
         String expresionAux = "";
         for (int i = 0; i < expresion.length(); i++) {
             char cExpresion = expresion.charAt(i);
@@ -42,21 +42,30 @@ public class SimplificadorFBF {
                     pilaOperadores.push(String.valueOf(cExpresion));
                     break;
                 case ')':
-                    if (!pilaOperadores.isEmpty()) {
-                        expresionAux = "";
-                        if (pilaOperandos.peek().length() > 1) {
-                            expresionAux += "(" + pilaOperandos.pop() + ")";
-                        } else {
-                            expresionAux += pilaOperandos.pop();
+                    if(pilaOperandos.size() > 1){
+                        if (!pilaOperadores.isEmpty()) {
+                            expresionAux = "";
+                            if (pilaOperandos.peek().length() > 1) {
+                                expresionAux += "(" + pilaOperandos.pop() + ")";
+                            } else {
+                                expresionAux += pilaOperandos.pop();
+                            }
+                            expresionAux += pilaOperadores.pop();
+                            if (pilaOperandos.peek().length() > 1) {
+                                expresionAux += "(" + pilaOperandos.pop() + ")";
+                            } else {
+                                expresionAux += pilaOperandos.pop();
+                            }
+                            expresionAux = simplificarPorPrioridad(expresionAux);
+                            pilaOperandos.add(expresionAux);
+                            /*
+                            if (pilaOperadores.peek().equals("¬")) {
+                                expresionAux += pilaOperadores.pop() + "(" + pilaOperandos.pop()+ ")";
+                                pilaOperandos.add(expresionAux);
+                            }
+                            System.out.print("ENTRANDO A SIMPLIFICAR PRIORIDAD" + "\n");
+*/
                         }
-                        expresionAux += pilaOperadores.pop();
-                        if (pilaOperandos.peek().length() > 1) {
-                            expresionAux += "(" + pilaOperandos.pop() + ")";
-                        } else {
-                            expresionAux += pilaOperandos.pop();
-                        }
-                        //System.out.print(expresionAux + "\n");
-                        pilaOperandos.add(expresionAux);
                     }
                     break;
                 default://Cualquier letra representando una proposición.
@@ -64,21 +73,25 @@ public class SimplificadorFBF {
                     break;
             }
         }
-        while (pilaOperandos.size() > 1) {
+        
+        while (pilaOperadores.size() > 0) {
+            System.out.print("Peek operadores "+pilaOperadores.peek() + "\n");
             expresionAux = "";
-            if (pilaOperandos.peek().length() > 1) {
-                expresionAux += "(" + pilaOperandos.pop() + ")";
-            } else {
-                expresionAux += pilaOperandos.pop();
+            if(pilaOperandos.size() > 1){
+                System.out.print("Entré en size Operandos mayor a 1 "+pilaOperadores.peek() + "\n");
+                if (pilaOperandos.peek().length() > 1) {
+                    expresionAux += "(" + pilaOperandos.pop() + ")";
+                } else {
+                    expresionAux += pilaOperandos.pop();
+                }
+                if (pilaOperadores.peek().equals("¬")) {
+                    expresionAux += pilaOperandos.pop() + pilaOperadores.pop();
+                }
+            }else {
+                expresionAux = pilaOperandos.pop() + pilaOperadores.pop();
             }
-            expresionAux += pilaOperadores.pop();
-            if (pilaOperandos.peek().length() > 1) {
-                expresionAux += "(" + pilaOperandos.pop() + ")";
-            } else {
-                expresionAux += pilaOperandos.pop();
-            }
+            System.out.print("ENTRANDO A SIMPLIFICAR PRIORIDAD" + "\n");
             expresionAux = simplificarPorPrioridad(expresionAux);
-            //System.out.print(expresionAux + "\n");
             pilaOperandos.add(expresionAux);
         }
         String expresionAuxInv = pilaOperandos.pop() + "\n";
@@ -94,7 +107,6 @@ public class SimplificadorFBF {
         expresionFinal = new String(arrayExpresionFinal);
         expresionFinal += "\n";
         System.out.print(expresionFinal);
-        
     }
     public static int encontrarPrioridad(char operadorAux) {
         int prioridadOperadorAux = 0;
@@ -164,10 +176,6 @@ public class SimplificadorFBF {
             }
         }
         Iterator iterator = listaOperadores.iterator();
-        while(iterator.hasNext()){
-            String operadorAux = (String)iterator.next();
-            System.out.print("operador aux es:   " + operadorAux + "\n");
-        }
         return listaOperadores;
     }
 }
