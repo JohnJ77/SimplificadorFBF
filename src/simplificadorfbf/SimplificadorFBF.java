@@ -19,7 +19,7 @@ public class SimplificadorFBF {
     public static void main(String[] args) {
         Stack<String> pilaOperandos = new Stack<String>();
         Stack<String> pilaOperadores = new Stack<String>();
-        String expresion = "¬(q$r)%(u$t)";
+        String expresion = "(¬(p%q))?((r?o)?t)";
         String expresionAux = "";
         for (int i = 0; i < expresion.length(); i++) {
             char cExpresion = expresion.charAt(i);
@@ -42,7 +42,7 @@ public class SimplificadorFBF {
                     pilaOperadores.push(String.valueOf(cExpresion));
                     break;
                 case ')':
-                    if(pilaOperandos.size() > 1){
+                    if (pilaOperandos.size() > 1) {
                         if (!pilaOperadores.isEmpty()) {
                             expresionAux = "";
                             if (pilaOperandos.peek().length() > 1) {
@@ -58,13 +58,13 @@ public class SimplificadorFBF {
                             }
                             expresionAux = simplificarPorPrioridad(expresionAux);
                             pilaOperandos.add(expresionAux);
-                            /*
-                            if (pilaOperadores.peek().equals("¬")) {
-                                expresionAux += pilaOperadores.pop() + "(" + pilaOperandos.pop()+ ")";
-                                pilaOperandos.add(expresionAux);
+                            expresionAux = "";
+                            if (!pilaOperadores.empty()) {
+                                if (pilaOperadores.peek().equals("¬")) {
+                                    expresionAux += "(" + pilaOperandos.pop() + ")" + pilaOperadores.pop();
+                                    pilaOperandos.add(expresionAux);
+                                }
                             }
-                            System.out.print("ENTRANDO A SIMPLIFICAR PRIORIDAD" + "\n");
-*/
                         }
                     }
                     break;
@@ -73,24 +73,30 @@ public class SimplificadorFBF {
                     break;
             }
         }
-        
         while (pilaOperadores.size() > 0) {
-            System.out.print("Peek operadores "+pilaOperadores.peek() + "\n");
             expresionAux = "";
-            if(pilaOperandos.size() > 1){
-                System.out.print("Entré en size Operandos mayor a 1 "+pilaOperadores.peek() + "\n");
+            if (pilaOperandos.size() > 1) {
                 if (pilaOperandos.peek().length() > 1) {
                     expresionAux += "(" + pilaOperandos.pop() + ")";
                 } else {
                     expresionAux += pilaOperandos.pop();
                 }
-                if (pilaOperadores.peek().equals("¬")) {
+                expresionAux += pilaOperadores.pop();
+                if (!pilaOperadores.empty()) {
+                    if (pilaOperadores.peek().equals("¬")) {
+                        String atomo = pilaOperandos.pop() + pilaOperadores.pop();
+                        pilaOperandos.add(atomo);
+                    }
+                }
+                expresionAux += pilaOperandos.pop();
+            } else {
+                if(!pilaOperadores.empty()){
                     expresionAux += pilaOperandos.pop() + pilaOperadores.pop();
                 }
-            }else {
-                expresionAux = pilaOperandos.pop() + pilaOperadores.pop();
+                else {
+                    expresionAux = pilaOperandos.pop();
+                }
             }
-            System.out.print("ENTRANDO A SIMPLIFICAR PRIORIDAD" + "\n");
             expresionAux = simplificarPorPrioridad(expresionAux);
             pilaOperandos.add(expresionAux);
         }
@@ -108,6 +114,7 @@ public class SimplificadorFBF {
         expresionFinal += "\n";
         System.out.print(expresionFinal);
     }
+
     public static int encontrarPrioridad(char operadorAux) {
         int prioridadOperadorAux = 0;
         switch (operadorAux) {
@@ -131,8 +138,9 @@ public class SimplificadorFBF {
                 break;
         }
         return prioridadOperadorAux;
-    }    
-    public static String simplificarPorPrioridad(String fbf){
+    }
+
+    public static String simplificarPorPrioridad(String fbf) {
         int prioridadPrimerOperador = 0;
         LinkedList<String> listaOperadores = encontrarOperadores(fbf);
         String primerOperador = listaOperadores.pop();
@@ -140,39 +148,39 @@ public class SimplificadorFBF {
         Iterator iterator = listaOperadores.iterator();
         boolean prioridadDiferente = false;
         while (iterator.hasNext()) {
-            String operadorAux = (String)iterator.next();
-            System.out.print("operador aux es:   " + operadorAux + "\n");
-            if(encontrarPrioridad(operadorAux.charAt(0)) != prioridadPrimerOperador){
+            String operadorAux = (String) iterator.next();
+            if (encontrarPrioridad(operadorAux.charAt(0)) != prioridadPrimerOperador) {
                 prioridadDiferente = true;
             }
         }
-        if(!prioridadDiferente){
-            fbf = fbf.replace("(","");
-            fbf = fbf.replace(")","");
+        if (!prioridadDiferente) {
+            fbf = fbf.replace("(", "");
+            fbf = fbf.replace(")", "");
         }
         return fbf;
-        
+
     }
-    public static LinkedList<String> encontrarOperadores(String fbf){
+
+    public static LinkedList<String> encontrarOperadores(String fbf) {
         LinkedList<String> listaOperadores = new LinkedList<String>();
-        for(int i = 0; i < fbf.length(); i++){
+        for (int i = 0; i < fbf.length(); i++) {
             char caracter = fbf.charAt(i);
-            switch(caracter){
+            switch (caracter) {
                 case '¬'://Operador Negación.
-                listaOperadores.add(String.valueOf(caracter));
-                break;
-            case '?'://Operador And
-                listaOperadores.add(String.valueOf(caracter));
-                break;
-            case '$'://Operador Or
-                listaOperadores.add(String.valueOf(caracter));
-                break;
-            case '%'://Operador condicional
-                listaOperadores.add(String.valueOf(caracter));
-                break;
-            case '#'://Operador bicondicional
-                listaOperadores.add(String.valueOf(caracter));
-                break;
+                    listaOperadores.add(String.valueOf(caracter));
+                    break;
+                case '?'://Operador And
+                    listaOperadores.add(String.valueOf(caracter));
+                    break;
+                case '$'://Operador Or
+                    listaOperadores.add(String.valueOf(caracter));
+                    break;
+                case '%'://Operador condicional
+                    listaOperadores.add(String.valueOf(caracter));
+                    break;
+                case '#'://Operador bicondicional
+                    listaOperadores.add(String.valueOf(caracter));
+                    break;
             }
         }
         Iterator iterator = listaOperadores.iterator();
